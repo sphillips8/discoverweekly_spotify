@@ -212,7 +212,6 @@ def avoid_duplicates(playlist_dict):
 # Adds songs to Skye's Discover Weekly Playlist
 def add_discover(playlist_dict):
     song_list = avoid_duplicates(playlist_dict)
-    print(song_list)
     with open('log.txt', 'a+') as log:
         log.write('\n{}: {} Songs Added'.format(datetime.now().date(), len(song_list)))
     print('--- Adding {} Songs to Skye\'s Discover Weekly --- '.format(len(song_list)))
