@@ -8,6 +8,9 @@ import spotipy.oauth2 as oauth2
 from spotipy.exceptions import SpotifyException
 from pandas import DataFrame, read_csv
 import smtplib, ssl
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+
 
 
 '''
@@ -64,20 +67,38 @@ port = 587  # For starttls
 smtp_server = "smtp.gmail.com"
 
 
-def email_message(reason, except_msg=None):
+def email_message(reason, msg=None):
     if reason == 'exception':
+        subject = 'Spotify.py Failure'
         message = """\
-        Subject: Spotify.py Failure
-
-        Skye's Discover Weekly Playlist did not update on {}. Exception: {} \n This message is sent from 
-        Python.""".format(datetime.now().date(), except_msg)
-    else:  # update with diagnostics information
+        <html>
+            <body>
+                An exception occurred when trying to run spotify.py: {}
+            </body>
+            <footer>
+                This email was generated at {}.
+            </footer>
+        </html>
+        """.format(msg, datetime.now().strftime('%Y-%m-%d %H:%M'))
+    else:  # update with statistics information
+        subject = 'Spotify.py Statistics'
         message = """\
-        Subject: Spotify.py Diagnostics
-
-        Skye's Discover Weekly Playlist did not update on {}. Exception: {} \n This message is sent from 
-        Python.""".format(datetime.now().date(), except_msg)
-    return message
+        <html>
+            <head> 
+                Skye's Discover Weekly Playlist statistics: <br>
+            </head>
+            <body>
+                {}
+            </body>
+            <footer>
+                This report was generated at {}.
+            </footer>
+        </html>
+        """.format(msg, datetime.now().strftime('%Y-%m-%d %H:%M'))
+    # else:
+    #     subject = 'Spotify.py Email Testing'
+    #     message="This email is for testing purposes only. \n This message is sent from Python."
+    return subject, message
 
 
 '''
@@ -257,14 +278,62 @@ def update_csv(discover_weekly_uri):
     df.to_csv('playlists.csv')
 
 
-# Prints diagnostics reports (in progress)
-def get_diagnostics():
-    print('--- Getting Report ---')
+# Prints statistics report
+def get_stats():
+    print('--- Collecting Data For Report ---')
     df = read_csv('playlists.csv')
-    print('--- Value Counts --- ')
-    print(df['Name'].value_counts().to_frame())
-    # Add Percentage of Hits, Misses, Top Added, Top Removed, Top Added, Least Added
-    # Style & Email Report
+    totals = df['Name'].value_counts().to_frame()
+    n_added, n_deleted = (list() for _ in range(2))
+    for playlist in totals.index:
+        n_added.append(len(df.loc[(df['Added'] == 'Added') & (df['Name'] == playlist)]))
+        n_deleted.append(len(df.loc[(df['Added'] == 'Deleted') & (df['Name'] == playlist)]))
+    # Adding Added, Adding %, Deleted, Deleted % To Get Best and Worst Playlists
+    totals['Added'] = n_added
+    totals['Added%'] = totals['Added']/totals['Name']*100
+    totals['Deleted'] = n_deleted
+    totals['Deleted%'] = totals['Deleted']/totals['Name']*100
+    # Getting Top and Bottom Playlists
+    top3names, top3stats = (list() for _ in range(2))
+    for col in ['Name', 'Added', 'Added%', 'Deleted', 'Deleted%']:
+        top3 = totals.sort_values([col], ascending=False).head(3)
+        for i in range(3):
+            top3names.append(top3.index[i])
+            top3stats.append(round(top3[col][i], 2))
+    top_indices = [i for i, e in enumerate(top3names[3:6]) if e in top3names[6:9]]
+    top_indices = ','.join(top3names[3+idx] for idx in top_indices).split(',')
+    lamest_indices = [i for i, e in enumerate(top3names[9:12]) if e in top3names[12:15]]
+    lamest_indices = ','.join(top3names[9+idx] for idx in lamest_indices).split(',')
+    top_value = setdiff1d(top_indices, top3names[9:15])
+    low_value = setdiff1d(lamest_indices, top3names[3:9])
+    top = ' & '.join(top_value)
+    topverb = 'are'
+    bottom = ' & '.join(low_value)
+    bottomverb = 'are'
+    if len(top_value) == 1:
+        top = top_value[0]
+        topverb = 'is'
+    elif len(top_value) == 0:
+        top = 'No playlists'
+    if len(low_value) == 1:
+        bottom = low_value[0]
+        bottomverb = 'is'
+    elif len(low_value) == 0:
+        bottom = 'No playlists'
+    format_list = []
+    for i in range(15):
+        format_list.extend([top3names[i], top3stats[i]])
+    format_list.extend([top, topverb, bottom, bottomverb])
+    print('\t--- Discover Report---')
+    stats = '\n  Most Added Songs to Skye\'s Discover Weekly: \n 1. {} - {} \n 2. {} - {} ' \
+            '\n 3. {} - {} \n\n   Top Hits: \n\t Most liked songs: \n 1. {} - {} \n 2. {} - {} \n 3. {} - {} ' \
+            '\n\n\t Highest Retention Rates: \n 1. {} - {}% \n 2. {} - {}% \n 3. {} - {}% \n\n   ' \
+            'Lamest Lames: \n\t  Most Disliked Songs: \n 1. {} - {} \n 2. {} - {} \n 3. {} - {} ' \
+            '\n\t Lowest Retention Rates: \n 1. {} - {}% \n 2. {} - {}% \n 3. {} - {}% \n\n   Notes: \n ' \
+            '{} {} adding the most value. \n {} {} adding the least value.'.format(*format_list)
+    print(stats)
+    stats = stats.replace('\n', '<br>')
+    stats = stats.replace('\t', '&emsp;')
+    return stats
 
 
 '''
@@ -285,20 +354,39 @@ def discoverWeekly():
     start_time = time.time()  # starts timer
     archive_songs(discover_playlist, archive_playlist)  # archives songs
     update_csv(discover_playlist)  # updates csv with add/delete information
-    get_diagnostics()  # gets updated diagnostics
+    context = ssl.create_default_context()
+    with smtplib.SMTP(smtp_server, port) as server:
+        server.ehlo()
+        server.starttls(context=context)
+        server.login(sender, password)
+        msg = MIMEMultipart('alternative')
+        subject, message = email_message('stats', get_stats())
+        msg['Subject'] = subject
+        msg['To'] = receiver
+        msg['From'] = sender
+        text_html = MIMEText(message, 'html')
+        msg.attach(text_html)
+        server.sendmail(sender, receiver, msg.as_string())  # gets updated statistics and emails report
+        server.quit()
     try:
         add_discover(playlist_dict)  # adds songs that have been added within the last 7 days
     except Exception as e:  # emails error message upon failures
         context = ssl.create_default_context()
         with smtplib.SMTP(smtp_server, port) as server:
+            server.ehlo()
             server.starttls(context=context)
             server.login(sender, password)
-            server.sendmail(sender, receiver, email_message('exception', e))
+            msg = MIMEMultipart('alternative')
+            subject, message = email_message('exception', e)
+            msg['Subject'] = subject
+            msg['To'] = receiver
+            msg['From'] = sender
+            text_html = MIMEText(message, 'html')
+            msg.attach(text_html)
+            server.sendmail(sender, receiver, msg.as_string())  # gets updated statistics and emails report
+            server.quit()
     end_time = time.time()  # ends timer
     print('--- Playlist Update Complete. Runtime: {} --- '.format(timer(start_time, end_time)))  # prints time elapsed
 
 
 discoverWeekly()  # archives songs, updates csv and diagnostics, adds new songs
-
-
-# get_diagnostics # prints diagnostics only
