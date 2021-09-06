@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from numpy import setdiff1d
 import time
 import pytz
-import configparser
+import json
 import spotipy
 import spotipy.oauth2 as oauth2
 from spotipy.exceptions import SpotifyException
@@ -23,19 +23,20 @@ from email.mime.multipart import MIMEMultipart
 '''
 
 
-# Retrieves user data from config.cfg file
-config = configparser.ConfigParser()
-config.read('config.cfg')
-client_id = config.get('SPOTIFY', 'CLIENT_ID')
-client_secret = config.get('SPOTIFY', 'CLIENT_SECRET')
-redirect_uri = config.get('SPOTIFY', 'REDIRECT_URI')
-scope = config.get('SPOTIFY', 'SCOPE')
-username = config.get('SPOTIFY', 'USERNAME')
-discover_uri = config.get('SPOTIFY', 'PLAYLIST')
-archive_uri = config.get('SPOTIFY', 'ARCHIVE')
-password = config.get('GOOGLE', 'PASSWORD')
-sender = config.get('GOOGLE', 'SENDER')
-receiver = config.get('GOOGLE', 'RECEIVER')
+# Retrieves user data from config.json file
+with open('config.json', "r") as file:
+    data = json.load(file)
+
+client_id = data['client_id']
+client_secret = data['client_secret']
+redirect_uri = data['redirect_uri']
+scope = data['scope']
+username = data['spotify_username']
+discover_uri = data['discover_playlist']
+archive_uri = data['archive_playlist']
+sender = data['email_sender_address']
+password = data['email_sender_password']
+receiver = data['email_receiver_address']
 
 
 # Grants authorization to Spotify API
