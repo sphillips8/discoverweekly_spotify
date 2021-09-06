@@ -12,12 +12,13 @@ var request = require('request'); // "Request" library
 var cors = require('cors');
 var querystring = require('querystring');
 var cookieParser = require('cookie-parser');
-var CONFIG = require('./config.json');
+var CONFIG = require('./config.json');  
 
 
 var client_id = CONFIG.client_id; // Your client id
 var client_secret = CONFIG.client_secret; // Your secret
 var redirect_uri = CONFIG.redirect_uri; // Your redirect uri
+var scopes = CONFIG.scope; // Your specified scopes
 
 /**
  * Generates a random string containing numbers and letters
@@ -48,7 +49,7 @@ app.get('/login', function(req, res) {
   res.cookie(stateKey, state);
 
   // your application requests authorization
-  var scope = 'user-library-read playlist-modify-public playlist-modify-private user-read-currently-playing user-modify-playback-state';
+  var scope = scopes;
   res.redirect('https://accounts.spotify.com/authorize?' +
     querystring.stringify({
       response_type: 'code',
