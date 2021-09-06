@@ -1,0 +1,12 @@
+{
+    "client_id": "your_client_id",
+    "client_secret": "your_client_secret",
+    "redirect_uri": "http://localhost:8888/callback/",
+    "scope":"user-library-read playlist-modify-public playlist-modify-private user-read-currently-playing user-modify-playback-state",
+    "spotify_username":"your_spotify_username",
+    "discover_playlist":"your_discover_playlist_link",
+    "archive_playlist":"your_archive_playlist_link",
+	"email_sender_address":"your_sender_email_address",
+	"email_sender_password":"your_sender_email_address_password",
+	"email_receiver_address":"your_receiver_email_address"
+}
