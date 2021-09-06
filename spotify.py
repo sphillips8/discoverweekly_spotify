@@ -52,9 +52,10 @@ auth = oauth2.SpotifyOAuth(
 playlists, playlist_name = (list() for _ in range(2))
 with open('playlists.txt', 'r') as file:
     for line in file:
-        pl = line.split('playlist/')[1].split('?si=')[0].strip()
-        playlists.append('spotify:playlist:' + pl)
-        playlist_name.append(line.split(':')[0])
+        if not line.startswith('!'):  # user may comment out playlists with a '!'
+            pl = line.split('playlist/')[1].split('?si=')[0].strip()
+            playlists.append('spotify:playlist:' + pl)
+            playlist_name.append(line.split(':')[0])
 playlist_dict = dict(zip(playlist_name, playlists))
 
 
@@ -310,15 +311,17 @@ def get_stats():
     bottom = ' & '.join(low_value)
     bottomverb = 'are'
     if len(top_value) == 1:
-        top = top_value[0]
-        topverb = 'is'
-    elif len(top_value) == 0:
-        top = 'No playlists'
+        if top_value[0] == '!':
+            top = 'No playlists'
+        else:
+            top = top_value[0]
+            topverb = 'is'
     if len(low_value) == 1:
-        bottom = low_value[0]
-        bottomverb = 'is'
-    elif len(low_value) == 0:
-        bottom = 'No playlists'
+        if low_value[0] == '':
+            bottom = 'No playlists'
+        else:
+            bottom = low_value[0]
+            bottomverb = 'is'
     format_list = []
     for i in range(15):
         format_list.extend([top3names[i], top3stats[i]])
