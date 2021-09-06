@@ -14,6 +14,6 @@ In your config.json file, input your client ID, client secret, and redirect URI.
 
 # Setting up playlists.txt
 Add playlists with the following format: 
-<br/>playlist name: link to playlist
+<br/>&nbsp;&nbsp;&nbsp;playlist name: link to playlist
 <br/>Every playlist should be added on their own line. You may comment out the playlist by starting the line with '!'. 
-<br/>You may name the playlist whatever you would like. Please give them all unique names. The naming convention you use in playlists.txt will appear in your statistics report. 
+<br/>You may name the playlist whatever you would like, but please give them all unique names. The naming convention you use in playlists.txt is how they will appear in your statistics report. 
