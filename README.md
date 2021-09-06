@@ -17,7 +17,7 @@ In your config.json file, input the relevant information.
 <br/>Input the password for the above email address for email_sender_password
 <br/>Input a receiving email address for email_receiver_address (May be a Gmail or alternative email address)
 
-# Setting up your Gmail compatibility with smtplib
+# Setting up Gmail compatibility with smtplib
 The code is currently set up to send emails using a Gmail email address. In order for this to work you need to enable "Allow less secure apps" option in your gmail account configuration. Otherwise you will get a "critical security alert" when gmail detects that a non-Google apps is trying to login your account. It is recommended you create a new email address, since you will be lowering your security by allowing less secure apps to access your account information.
 
 # Setting up playlists.txt
