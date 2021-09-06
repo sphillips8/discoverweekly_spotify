@@ -7,7 +7,7 @@ Follow the instructions on https://developer.spotify.com/documentation/general/g
 <br/> Set callback URI = http://localhost:8888/callback/
 
 # Setting up config.json
-In your config.json file, input the relevant information. 
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;In your config.json file, input the relevant information. 
 <br/>Gather your client ID and client secret from your application dashboard from https://developer.spotify.com/dashboard/login
 <br/>Your redirect URI should be http://localhost:8888/callback/
 <br/>Your scope should be 'user-library-read playlist-modify-public playlist-modify-private user-read-currently-playing user-modify-playback-state'
