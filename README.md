@@ -19,6 +19,6 @@ In your config.json file, input the relevant information.
 
 # Setting up playlists.txt
 Add playlists with the following format: 
-<br/>&nbsp;&nbsp;&nbsp;playlist name: link to playlist
+<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;playlist name: link to playlist
 <br/>Every playlist should be added on their own line. You may comment out the playlist by starting the line with '!'. 
 <br/>You may name the playlist whatever you would like, but please give them all unique names. The naming convention you use in playlists.txt is how they will appear in your statistics report. 
